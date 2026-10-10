@@ -13,6 +13,7 @@ struct SquareSpiral {
     x: f32,
     y: f32,
     radius: u32,
+    old_radius: Option<u32>,
     direction_index: usize,
 }
 
@@ -22,6 +23,7 @@ impl SquareSpiral {
             x: -0.5,
             y: -0.5,
             radius: 0,
+            old_radius: None,
             direction_index: 0,
         }
     }
@@ -33,6 +35,15 @@ impl SquareSpiral {
         if self.direction_index == 4 {
             self.radius += 1;
         }
+
+        // Up
+        if self.direction_index == 6 {
+            self.old_radius = Some(self.radius - 1);
+        }
+    }
+
+    fn back_turn(&mut self) {
+        self.direction_index = (self.direction_index + 7) % 8;
     }
 }
 
@@ -60,6 +71,15 @@ impl Iterator for SquareSpiral {
 
         if sq_distance > self.radius * self.radius {
             self.turn();
+        }
+
+        if let Some(old_radius) = self.old_radius {
+            let next_square = move_square(self.direction_index, current_square);
+            let sq_distance = calc_square_distance(next_square);
+
+            if sq_distance <= old_radius * old_radius {
+                self.back_turn();
+            }
         }
 
         println!("Direction: {:?}", self.direction_index);
