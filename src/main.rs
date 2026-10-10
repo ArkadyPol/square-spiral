@@ -1,3 +1,7 @@
+use std::collections::HashSet;
+
+use macroquad::prelude::*;
+
 const DIRECTIONS: [(f32, f32); 8] = [
     (1.0, 0.0),   // Right
     (1.0, 1.0),   // RightDown
@@ -74,12 +78,46 @@ fn move_square(direction_index: usize, (x, y): (f32, f32)) -> (f32, f32) {
     (x + dx, y + dy)
 }
 
-fn main() {
-    let mut spiral = SquareSpiral::new();
-    let count = 100;
-    for i in 0..count {
-        if let Some(value) = spiral.next() {
-            println!("{}. {} {:?}", i + 1, calc_square_distance(value), value);
+#[macroquad::main("Square Spiral")]
+async fn main() {
+    let spiral = SquareSpiral::new();
+    let mut visited = HashSet::new();
+
+    let points: Vec<(f32, f32)> = spiral.take(100).collect();
+
+    let scale = 30.0;
+    let offset_x = screen_width() / 2.0;
+    let offset_y = screen_height() / 2.0;
+
+    for (i, &value) in points.iter().enumerate() {
+        println!("{}. {} {:?}", i + 1, calc_square_distance(value), value);
+        let point = ((value.0 * 2.0) as i32, (value.1 * 2.0) as i32);
+
+        if !visited.insert(point) {
+            println!("Повтор на шаге {}: ({}, {})", i + 1, value.0, value.1);
         }
+    }
+
+    loop {
+        clear_background(Color::from_rgba(16, 16, 24, 255));
+
+        for &(x, y) in points.iter() {
+            let px = offset_x + x * scale;
+            let py = offset_y - y * scale;
+
+            if px >= 0.0 && px < screen_width() && py >= 0.0 && py < screen_height() {
+                draw_rectangle(px, py, 28.0, 28.0, Color::from_rgba(0, 255, 128, 255));
+            }
+        }
+
+        draw_circle_lines(
+            offset_x + scale / 2.0,
+            offset_y + scale / 2.0,
+            6.0 * scale,
+            3.0,
+            RED,
+        );
+
+        next_frame().await;
     }
 }
