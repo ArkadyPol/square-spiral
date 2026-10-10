@@ -13,7 +13,6 @@ struct SquareSpiral {
     x: f32,
     y: f32,
     radius: u32,
-    old_radius: Option<u32>,
     direction_index: usize,
 }
 
@@ -23,27 +22,8 @@ impl SquareSpiral {
             x: -0.5,
             y: -0.5,
             radius: 0,
-            old_radius: None,
             direction_index: 0,
         }
-    }
-
-    fn turn(&mut self) {
-        self.direction_index = (self.direction_index + 1) % 8;
-
-        // Left
-        if self.direction_index == 4 {
-            self.radius += 1;
-        }
-
-        // Up
-        if self.direction_index == 6 {
-            self.old_radius = Some(self.radius - 1);
-        }
-    }
-
-    fn back_turn(&mut self) {
-        self.direction_index = (self.direction_index + 7) % 8;
     }
 }
 
@@ -52,6 +32,7 @@ impl Iterator for SquareSpiral {
 
     fn next(&mut self) -> Option<Self::Item> {
         let current_square = (self.x, self.y);
+        let current_direction = self.direction_index;
 
         println!(
             "sq_distance: {} radius: {}",
@@ -59,34 +40,31 @@ impl Iterator for SquareSpiral {
             self.radius
         );
 
-        let next_square = move_square(self.direction_index, current_square);
-        let sq_distance = calc_square_distance(next_square);
+        let directions = [
+            (current_direction + 7) % 8,
+            current_direction,
+            (current_direction + 1) % 8,
+            (current_direction + 2) % 8,
+        ];
 
-        if sq_distance > self.radius * self.radius {
-            self.turn();
-        }
-
-        let next_square = move_square(self.direction_index, current_square);
-        let sq_distance = calc_square_distance(next_square);
-
-        if sq_distance > self.radius * self.radius {
-            self.turn();
-        }
-
-        if let Some(old_radius) = self.old_radius {
-            let next_square = move_square(self.direction_index, current_square);
+        for dir in directions {
+            let next_square = move_square(dir, current_square);
             let sq_distance = calc_square_distance(next_square);
 
-            if sq_distance <= old_radius * old_radius {
-                self.back_turn();
+            if sq_distance <= self.radius * self.radius {
+                self.direction_index = dir;
+                self.x = next_square.0;
+                self.y = next_square.1;
+                break;
             }
         }
 
-        println!("Direction: {:?}", self.direction_index);
+        // Left
+        if self.direction_index == 4 && current_direction != 4 {
+            self.radius += 1;
+        }
 
-        let new_coords = move_square(self.direction_index, current_square);
-        self.x = new_coords.0;
-        self.y = new_coords.1;
+        println!("Direction: {:?}", self.direction_index);
 
         Some(current_square)
     }
