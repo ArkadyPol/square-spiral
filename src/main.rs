@@ -34,12 +34,6 @@ impl Iterator for SquareSpiral {
         let current_square = (self.x, self.y);
         let current_direction = self.direction_index;
 
-        println!(
-            "sq_distance: {} radius: {}",
-            calc_square_distance(current_square),
-            self.radius
-        );
-
         let directions = [
             (current_direction + 7) % 8,
             current_direction,
@@ -60,11 +54,10 @@ impl Iterator for SquareSpiral {
         }
 
         // Left
-        if self.direction_index == 4 && current_direction != 4 {
+        if self.direction_index == 4 && self.x == -0.5 {
+            println!("radius {} -> {}", self.radius, self.radius + 1);
             self.radius += 1;
         }
-
-        println!("Direction: {:?}", self.direction_index);
 
         Some(current_square)
     }
@@ -83,12 +76,10 @@ fn move_square(direction_index: usize, (x, y): (f32, f32)) -> (f32, f32) {
 
 fn main() {
     let mut spiral = SquareSpiral::new();
-    let count = 64;
+    let count = 100;
     for i in 0..count {
         if let Some(value) = spiral.next() {
-            println!("step: {}", i + 1);
-            println!("Point: {value:?}");
-            println!("------//------");
+            println!("{}. {} {:?}", i + 1, calc_square_distance(value), value);
         }
     }
 }
