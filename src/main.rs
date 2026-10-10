@@ -1,16 +1,19 @@
-#[derive(Debug)]
-enum Direction {
-    Right,
-    Down,
-    Left,
-    Up,
-}
+const DIRECTIONS: [(f32, f32); 8] = [
+    (1.0, 0.0),   // Right
+    (1.0, 1.0),   // RightDown
+    (0.0, 1.0),   // Down
+    (-1.0, 1.0),  // LeftDown
+    (-1.0, 0.0),  // Left
+    (-1.0, -1.0), // LeftUp
+    (0.0, -1.0),  // Up
+    (1.0, -1.0),  // RightUp
+];
 
 struct SquareSpiral {
     x: f32,
     y: f32,
     radius: u32,
-    direction: Direction,
+    direction_index: usize,
 }
 
 impl SquareSpiral {
@@ -19,7 +22,16 @@ impl SquareSpiral {
             x: -0.5,
             y: -0.5,
             radius: 0,
-            direction: Direction::Right,
+            direction_index: 0,
+        }
+    }
+
+    fn turn(&mut self) {
+        self.direction_index = (self.direction_index + 1) % 8;
+
+        // Left
+        if self.direction_index == 4 {
+            self.radius += 1;
         }
     }
 }
@@ -30,41 +42,31 @@ impl Iterator for SquareSpiral {
     fn next(&mut self) -> Option<Self::Item> {
         let current_square = (self.x, self.y);
 
-        println!("sq_distance: {}", calc_square_distance(current_square));
+        println!(
+            "sq_distance: {} radius: {}",
+            calc_square_distance(current_square),
+            self.radius
+        );
 
-        let mut next_square = current_square;
-
-        match self.direction {
-            Direction::Right => next_square.0 += 1.0,
-            Direction::Down => next_square.1 += 1.0,
-            Direction::Left => next_square.0 -= 1.0,
-            Direction::Up => next_square.1 -= 1.0,
-        }
-
+        let next_square = move_square(self.direction_index, current_square);
         let sq_distance = calc_square_distance(next_square);
 
         if sq_distance > self.radius * self.radius {
-            match self.direction {
-                Direction::Right => self.direction = Direction::Down,
-                Direction::Down => {
-                    self.direction = Direction::Left;
-                    self.radius += 1;
-                }
-                Direction::Left => self.direction = Direction::Up,
-                Direction::Up => {
-                    self.direction = Direction::Right;
-                }
-            }
+            self.turn();
         }
 
-        println!("{:?}", self.direction);
+        let next_square = move_square(self.direction_index, current_square);
+        let sq_distance = calc_square_distance(next_square);
 
-        match self.direction {
-            Direction::Right => self.x += 1.0,
-            Direction::Down => self.y += 1.0,
-            Direction::Left => self.x -= 1.0,
-            Direction::Up => self.y -= 1.0,
+        if sq_distance > self.radius * self.radius {
+            self.turn();
         }
+
+        println!("Direction: {:?}", self.direction_index);
+
+        let new_coords = move_square(self.direction_index, current_square);
+        self.x = new_coords.0;
+        self.y = new_coords.1;
 
         Some(current_square)
     }
@@ -76,12 +78,18 @@ fn calc_square_distance((x, y): (f32, f32)) -> u32 {
     (x * x + y * y) as u32
 }
 
+fn move_square(direction_index: usize, (x, y): (f32, f32)) -> (f32, f32) {
+    let (dx, dy) = DIRECTIONS[direction_index];
+    (x + dx, y + dy)
+}
+
 fn main() {
     let mut spiral = SquareSpiral::new();
-    let count = 10;
-    for _ in 0..count {
+    let count = 64;
+    for i in 0..count {
         if let Some(value) = spiral.next() {
-            println!("{value:?}");
+            println!("step: {}", i + 1);
+            println!("Point: {value:?}");
             println!("------//------");
         }
     }
