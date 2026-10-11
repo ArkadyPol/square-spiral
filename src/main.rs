@@ -38,8 +38,10 @@ impl Iterator for SquareSpiral {
         let current_square = (self.x, self.y);
         let current_direction = self.direction_index;
 
+        let r = self.radius;
+        let mid_max_limit = (r * r + (r + 1) * (r + 1)) / 2;
+
         let directions = [
-            (current_direction + 7) % 8,
             current_direction,
             (current_direction + 1) % 8,
             (current_direction + 2) % 8,
@@ -49,7 +51,7 @@ impl Iterator for SquareSpiral {
             let next_square = move_square(dir, current_square);
             let sq_distance = calc_square_distance(next_square);
 
-            if sq_distance <= self.radius * self.radius {
+            if sq_distance <= mid_max_limit {
                 self.direction_index = dir;
                 self.x = next_square.0;
                 self.y = next_square.1;
@@ -83,7 +85,7 @@ async fn main() {
     let spiral = SquareSpiral::new();
     let mut visited = HashSet::new();
 
-    let points: Vec<(f32, f32)> = spiral.take(100).collect();
+    let points: Vec<(f32, f32)> = spiral.take(84).collect();
 
     let scale = 30.0;
     let offset_x = screen_width() / 2.0;
@@ -113,7 +115,7 @@ async fn main() {
         draw_circle_lines(
             offset_x + scale / 2.0,
             offset_y + scale / 2.0,
-            6.0 * scale,
+            5.0 * scale,
             3.0,
             RED,
         );
