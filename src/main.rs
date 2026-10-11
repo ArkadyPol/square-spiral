@@ -39,7 +39,7 @@ impl Iterator for SquareSpiral {
         let current_direction = self.direction_index;
 
         let r = self.radius;
-        let mid_max_limit = (r * r + (r + 1) * (r + 1)) / 2;
+        let mid_max_limit = r * r + r;
 
         let directions = [
             current_direction,
