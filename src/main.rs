@@ -133,12 +133,12 @@ fn color_for_radius(radius: u32) -> Color {
 #[macroquad::main("Square Spiral")]
 async fn main() {
     let spiral = SquareSpiral::new();
-    let count = 88;
+    let count = 468;
     let mut visited = HashSet::new();
 
     let points: Vec<((f32, f32), u32)> = spiral.take(count).collect();
 
-    let scale = 30.0;
+    let scale = 20.0;
 
     for (i, &(point, _r)) in points.iter().enumerate() {
         println!("{}. {} {:?}", i + 1, calc_square_distance(point), point);
@@ -161,12 +161,16 @@ async fn main() {
 
         elapsed += get_frame_time();
 
-        if elapsed >= 0.1 {
-            elapsed -= 0.1;
+        if elapsed >= 1.0 / 60.0 {
+            elapsed -= 1.0 / 60.0;
 
-            if i < points.len() {
-                drawing_points.push(points[i]);
-                i += 1;
+            for _ in 0..4 {
+                if i < points.len() {
+                    drawing_points.push(points[i]);
+                    i += 1;
+                } else {
+                    break;
+                }
             }
         }
 
@@ -177,14 +181,14 @@ async fn main() {
             let py = offset_y + y * scale;
 
             if px >= 0.0 && px < screen_width() && py >= 0.0 && py < screen_height() {
-                draw_rectangle(px, py, 28.0, 28.0, color_for_radius(r));
+                draw_rectangle(px, py, scale * 0.9, scale * 0.9, color_for_radius(r));
             }
         }
 
         draw_circle_lines(
             offset_x + scale / 2.0,
             offset_y + scale / 2.0,
-            5.0 * scale,
+            12.0 * scale,
             3.0,
             WHITE,
         );
